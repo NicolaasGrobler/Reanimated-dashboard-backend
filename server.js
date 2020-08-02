@@ -45,8 +45,14 @@ app.post('/createEvent', (req, res, next) => {
     eventDate = req.body.eventDate;
     eventPlace = req.body.eventPlace;
     eventURL = req.body.eventURL;
+    eventTime = req.body.eventTime;
+    eventDescription = req.body.eventDescription;
+    eventContactPerson = req.body.eventContactPerson;
+    eventContactDetails = req.body.eventContactDetails;
 
-    connection.query(`INSERT INTO covid_screening.events (event_name, event_place, event_date, event_img) VALUES (?, ?, ?, ?)`, [eventName, eventPlace, eventDate, eventURL], (err, result, fields) => {
+    console.log(eventDescription);
+    
+    connection.query(`INSERT INTO covid_screening.events (event_name, event_place, event_date, event_img, event_time, event_description, event_contact_person, event_contact_details) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, [eventName, eventPlace, eventDate, eventURL, eventTime, eventDescription, eventContactPerson, eventContactDetails], (err, result, fields) => {
         if (err) throw err;
         res.send(`Success! New row number: ${result.insertId}`);
     }); 
