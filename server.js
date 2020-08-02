@@ -39,7 +39,7 @@ app.get('/getEvent/:id', (req, res, next) => {
 });
 
 app.post('/createEvent', (req, res, next) => {
-    let eventName, eventDate, eventPlace, eventURL;
+    let eventName, eventDate, eventPlace, eventURL, eventTime, eventDescription, eventContactPerson, eventContactDetails;
 
     eventName = req.body.eventName;
     eventDate = req.body.eventDate;
@@ -49,12 +49,30 @@ app.post('/createEvent', (req, res, next) => {
     eventDescription = req.body.eventDescription;
     eventContactPerson = req.body.eventContactPerson;
     eventContactDetails = req.body.eventContactDetails;
-
-    console.log(eventDescription);
     
     connection.query(`INSERT INTO covid_screening.events (event_name, event_place, event_date, event_img, event_time, event_description, event_contact_person, event_contact_details) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, [eventName, eventPlace, eventDate, eventURL, eventTime, eventDescription, eventContactPerson, eventContactDetails], (err, result, fields) => {
         if (err) throw err;
         res.send(`Success! New row number: ${result.insertId}`);
+    }); 
+});
+
+app.put('/updateEvent/:id', (req, res, next) => {
+    console.log('PUT SUCCESS!');
+    
+    let eventName, eventDate, eventPlace, eventURL, eventTime, eventDescription, eventContactPerson, eventContactDetails;
+
+    eventName = req.body.eventName;
+    eventDate = req.body.eventDate;
+    eventPlace = req.body.eventPlace;
+    eventURL = req.body.eventURL;
+    eventTime = req.body.eventTime;
+    eventDescription = req.body.eventDescription;
+    eventContactPerson = req.body.eventContactPerson;
+    eventContactDetails = req.body.eventContactDetails;
+    
+    connection.query(`UPDATE covid_screening.events SET event_name = ?, event_place = ?, event_date = ?, event_img = ?, event_time = ?, event_description = ?, event_contact_person = ?, event_contact_details = ? WHERE id = ?`, [eventName, eventPlace, eventDate, eventURL, eventTime, eventDescription, eventContactPerson, eventContactDetails, req.params.id], (err, result, fields) => {
+        if (err) throw err;
+        res.send(`Success! Updated row: ${req.params.id}`);
     }); 
 });
 
