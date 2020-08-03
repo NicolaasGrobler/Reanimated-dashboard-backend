@@ -22,23 +22,27 @@ app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-app.get('/', (req, res, next) => {
+//Test get event
+app.get('/', (req, res) => {
     res.send('Request working');
 });
 
-app.get('/getEvents', (req, res, next) => {
+//Get all events
+app.get('/getEvents', (req, res) => {
     connection.query('SELECT * FROM covid_screening.events', (err, result, fields) => {
         res.send(result);
     });    
 });
 
-app.get('/getEvent/:id', (req, res, next) => {
+//Get a specific event
+app.get('/getEvent/:id', (req, res) => {
     connection.query('SELECT * FROM covid_screening.events WHERE id = ? LIMIT 1', req.params.id, (err, result, fields) => {
         res.send(result);
     }); 
 });
 
-app.post('/createEvent', (req, res, next) => {
+//Create an event
+app.post('/createEvent', (req, res) => {
     let eventName, eventDate, eventPlace, eventURL, eventTime, eventDescription, eventContactPerson, eventContactDetails;
 
     eventName = req.body.eventName;
@@ -56,7 +60,8 @@ app.post('/createEvent', (req, res, next) => {
     }); 
 });
 
-app.put('/updateEvent/:id', (req, res, next) => {
+//Update an event
+app.put('/updateEvent/:id', (req, res) => {
     console.log('PUT SUCCESS!');
     
     let eventName, eventDate, eventPlace, eventURL, eventTime, eventDescription, eventContactPerson, eventContactDetails;
@@ -75,5 +80,13 @@ app.put('/updateEvent/:id', (req, res, next) => {
         res.send(`Success! Updated row: ${req.params.id}`);
     }); 
 });
+
+//Delete an event
+app.delete('/deleteEvent/:id', (req, res) => {
+    connection.query('DELETE FROM covid_screening.events WHERE id = ?', req.params.id, (err, result, fields) => {
+        if (err) throw err;
+        res.send(`Success! Deleted row: ${req.params.id}`);
+    }); 
+})
 
 app.listen(process.env.PORT);
