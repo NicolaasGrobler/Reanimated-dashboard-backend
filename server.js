@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const bodyParser = require("body-parser");
+const upload = require('express-fileupload');
 const cors = require('cors');
 const sql = require('mysql');
 const app = express();
@@ -21,6 +22,7 @@ console.log(`Server running on port: ${process.env.PORT}`);
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+app.use(upload());
 
 //Test get event
 app.get('/', (req, res) => {
@@ -88,5 +90,22 @@ app.delete('/deleteEvent/:id', (req, res) => {
         res.send(`Success! Deleted row: ${req.params.id}`);
     }); 
 })
+
+//Upload file
+app.post('/uploadFile', (req, res) => {
+    if (req.files) {
+        let file = req.files.file
+        let filename = file.name
+        console.log(req.files);
+
+        file.mv('./uploads/'+filename, (err) => {
+            if (err) {
+                console.log(err);
+            }
+        });
+
+        res.json({filepath: __dirname+'/uploads/'+filename});
+    }
+});
 
 app.listen(process.env.PORT);
