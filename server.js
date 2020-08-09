@@ -62,6 +62,19 @@ app.post('/createEvent', (req, res) => {
     }); 
 });
 
+//Send image
+app.get('/getImage/:imageName', (req, res) => {
+    let options = {
+        root: __dirname + '/uploads'
+    }
+    let fileName = req.params.imageName;
+    res.sendFile(fileName, options, (err) => {
+        if (err) {
+            console.log(err);
+        }
+    });
+});
+
 //Update an event
 app.put('/updateEvent/:id', (req, res) => {
     console.log('PUT SUCCESS!');
