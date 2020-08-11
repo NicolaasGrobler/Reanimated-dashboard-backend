@@ -5,6 +5,8 @@ const upload = require('express-fileupload');
 const cors = require('cors');
 const sql = require('mysql');
 const app = express();
+const fs = require('fs');
+
 
 let connection = sql.createConnection({
     host: process.env.serverHOST,
@@ -31,14 +33,14 @@ app.get('/', (req, res) => {
 
 //Get all events
 app.get('/getEvents', (req, res) => {
-    connection.query('SELECT * FROM covid_screening.events', (err, result, fields) => {
+    connection.query(`SELECT * FROM ${process.env.DBName}.events`, (err, result, fields) => {
         res.send(result);
     });    
 });
 
 //Get a specific event
 app.get('/getEvent/:id', (req, res) => {
-    connection.query('SELECT * FROM covid_screening.events WHERE id = ? LIMIT 1', req.params.id, (err, result, fields) => {
+    connection.query(`SELECT * FROM ${process.env.DBName}.events WHERE id = ? LIMIT 1`, req.params.id, (err, result, fields) => {
         res.send(result);
     }); 
 });
@@ -56,7 +58,7 @@ app.post('/createEvent', (req, res) => {
     eventContactPerson = req.body.eventContactPerson;
     eventContactDetails = req.body.eventContactDetails;
     
-    connection.query(`INSERT INTO covid_screening.events (event_name, event_place, event_date, event_img, event_time, event_description, event_contact_person, event_contact_details) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, [eventName, eventPlace, eventDate, eventURL, eventTime, eventDescription, eventContactPerson, eventContactDetails], (err, result, fields) => {
+    connection.query(`INSERT INTO ${process.env.DBName}.events (event_name, event_place, event_date, event_img, event_time, event_description, event_contact_person, event_contact_details) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, [eventName, eventPlace, eventDate, eventURL, eventTime, eventDescription, eventContactPerson, eventContactDetails], (err, result, fields) => {
         if (err) throw err;
         res.send(`Success! New row number: ${result.insertId}`);
     }); 
@@ -70,7 +72,7 @@ app.get('/getImage/:imageName', (req, res) => {
     let fileName = req.params.imageName;
     res.sendFile(fileName, options, (err) => {
         if (err) {
-            console.log(err);
+            throw err;
         }
     });
 });
@@ -90,7 +92,7 @@ app.put('/updateEvent/:id', (req, res) => {
     eventContactPerson = req.body.eventContactPerson;
     eventContactDetails = req.body.eventContactDetails;
     
-    connection.query(`UPDATE covid_screening.events SET event_name = ?, event_place = ?, event_date = ?, event_img = ?, event_time = ?, event_description = ?, event_contact_person = ?, event_contact_details = ? WHERE id = ?`, [eventName, eventPlace, eventDate, eventURL, eventTime, eventDescription, eventContactPerson, eventContactDetails, req.params.id], (err, result, fields) => {
+    connection.query(`UPDATE ${process.env.DBName}.events SET event_name = ?, event_place = ?, event_date = ?, event_img = ?, event_time = ?, event_description = ?, event_contact_person = ?, event_contact_details = ? WHERE id = ?`, [eventName, eventPlace, eventDate, eventURL, eventTime, eventDescription, eventContactPerson, eventContactDetails, req.params.id], (err, result, fields) => {
         if (err) throw err;
         res.send(`Success! Updated row: ${req.params.id}`);
     }); 
@@ -98,7 +100,7 @@ app.put('/updateEvent/:id', (req, res) => {
 
 //Delete an event
 app.delete('/deleteEvent/:id', (req, res) => {
-    connection.query('DELETE FROM covid_screening.events WHERE id = ?', req.params.id, (err, result, fields) => {
+    connection.query(`DELETE FROM ${process.env.DBName}.events WHERE id = ?`, req.params.id, (err, result, fields) => {
         if (err) throw err;
         res.send(`Success! Deleted row: ${req.params.id}`);
     }); 
@@ -107,9 +109,18 @@ app.delete('/deleteEvent/:id', (req, res) => {
 //Upload file
 app.post('/uploadFile', (req, res) => {
     if (req.files) {
+        let today = new Date();
+        let date = today.getFullYear()+''+(today.getMonth()+1)+''+today.getDate();
+        let time = today.getHours() + "" + today.getMinutes() + "" + today.getSeconds();
+        let dateTime = date+''+time;
+
         let file = req.files.file
-        let filename = file.name
-        console.log(req.files);
+        let extension = file.name;
+        extension = extension.split('.');
+        extension = extension[extension.length - 1];
+        let filename = dateTime + '.' + extension;
+
+        console.log(filename);
 
         file.mv('./uploads/'+filename, (err) => {
             if (err) {
@@ -117,8 +128,28 @@ app.post('/uploadFile', (req, res) => {
             }
         });
 
-        res.json({filepath: __dirname+'/uploads/'+filename});
+        res.json({
+            filepath: __dirname+'/uploads/'+filename,
+            fileName: filename
+        });
     }
+});
+
+//Delete File
+app.post('/deleteFile/:fileName', (req, res) => {
+    fs.unlink(__dirname+'/uploads/'+req.params.fileName, () => {
+        res.send('File Deleted');
+    })
+});
+
+//Get Time
+app.get('/getTime', (req, res) => {
+    let today = new Date();
+    let date = today.getFullYear()+''+(today.getMonth()+1)+''+today.getDate();
+    let time = today.getHours() + "" + today.getMinutes() + "" + today.getSeconds();
+    let dateTime = date+''+time;
+
+    res.send(dateTime);
 });
 
 app.listen(process.env.PORT);
